@@ -11,17 +11,12 @@ function App() {
   useEffect(() => {
     const init = async () => {
       try {
-        const response = await axios.get('http://192.168.0.34:5001/punches');
-        const punches = response.data
-        setPunches(punches)
-
-        const lastPunch = punches[punches.length - 1]
-        setIsIn(lastPunch?.isIn)
-        if (lastPunch?.isIn) {
-          setStartTime(Date.now() - calculateTotalInDuration(punches))
-        } else {
-          setStartTime(lastPunch.epochMillis)
+        const checkPunches = async () => {
+          const response = await axios.get('http://192.168.0.34:5001/punches');
+          const punches = response.data
+          setPunches(punches)
         }
+        setInterval(checkPunches, 500)
       } catch (error) {
         console.error('Is the backend running and working?', error);
       }
@@ -30,16 +25,33 @@ function App() {
   }, [])
 
   useEffect(() => {
+    if (!punches) {
+      return
+    }
+    const lastPunch = punches[punches.length - 1]
+    setIsIn(lastPunch?.isIn)
+    if (lastPunch?.isIn) {
+      setStartTime(Date.now() - calculateTotalInDuration(punches))
+    } else {
+      setStartTime(lastPunch.epochMillis)
+    }
+  }, [punches])
+
+  const msToTime = (ms) => {
+    const hours = String(Math.floor(ms / (1000 * 60 * 60))).padStart(2, '0');
+    const minutes = String(Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+    const seconds = String(Math.floor((ms % (1000 * 60)) / 1000)).padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`
+  }
+
+  useEffect(() => {
     let timer;
 
     if (startTime) {
       timer = setInterval(() => {
         const now = Date.now();
         const diff = now - startTime;
-        const hours = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0');
-        const minutes = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
-        const seconds = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
-        setElapsedTime(`${hours}:${minutes}:${seconds}`);
+        setElapsedTime(msToTime(diff));
       }, 100);
     } else {
       setElapsedTime('');
@@ -49,6 +61,9 @@ function App() {
   }, [startTime]);
 
   const calculateTotalInDuration = (punches) => {
+    if (!punches) {
+      return 0
+    }
     let totalInDuration = 0;
     let lastInTime = null;
 
@@ -91,11 +106,14 @@ function App() {
     }
   };
 
+  const inDuration = calculateTotalInDuration(punches)
+
   return (
     <div className={`app ${isIn ? 'in' : 'out'}`} onClick={punchClick}>
       <div className="clock">
         {elapsedTime}
       </div>
+      {!isIn && inDuration && <div className="inDuration">{msToTime(inDuration)}</div>}
     </div>
   );
 }
