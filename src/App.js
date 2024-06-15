@@ -11,7 +11,7 @@ function App() {
   useEffect(() => {
     const init = async () => {
       try {
-        const response = await axios.get('http://localhost:5001/punches');
+        const response = await axios.get('http://192.168.0.34:5001/punches');
         const punches = response.data
         setPunches(punches)
 
@@ -40,7 +40,7 @@ function App() {
         const minutes = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
         const seconds = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
         setElapsedTime(`${hours}:${minutes}:${seconds}`);
-      }, 50);
+      }, 100);
     } else {
       setElapsedTime('');
     }
@@ -83,7 +83,7 @@ function App() {
         setStartTime(Date.now() - calculateTotalInDuration(punches))
       }
       setIsIn(newIsIn);
-      const response = await axios.post('http://localhost:5001/punch', { isIn: newIsIn, epochMillis: Date.now() });
+      const response = await axios.post('http://192.168.0.34:5001/punch', { isIn: newIsIn, epochMillis: Date.now() });
       setPunches(response.data)
     } catch (error) {
       console.error('Error storing data', error);
