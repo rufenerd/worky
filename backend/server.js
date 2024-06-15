@@ -6,7 +6,7 @@ const cors = require('cors');
 const config = require('./config')
 
 const MAX_IN_DURATION = 4 * 60 * 60 * 1000
-const MAX_OUT_DURATION = 26 * 60 * 1000
+const MAX_OUT_DURATION = 27 * 60 * 1000
 
 const app = express();
 app.use(express.json());
