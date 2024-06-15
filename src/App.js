@@ -16,8 +16,12 @@ function App() {
         setPunches(punches)
 
         const lastPunch = punches[punches.length - 1]
-        setIsIn(lastPunch.isIn)
-        setStartTime(lastPunch.epochMillis)
+        setIsIn(lastPunch?.isIn)
+        if (lastPunch?.isIn) {
+          setStartTime(Date.now() - calculateTotalInDuration(punches))
+        } else {
+          setStartTime(lastPunch.epochMillis)
+        }
       } catch (error) {
         console.error('Is the backend running and working?', error);
       }
@@ -36,7 +40,7 @@ function App() {
         const minutes = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
         const seconds = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
         setElapsedTime(`${hours}:${minutes}:${seconds}`);
-      }, 1000);
+      }, 50);
     } else {
       setElapsedTime('');
     }
@@ -44,11 +48,40 @@ function App() {
     return () => clearInterval(timer);
   }, [startTime]);
 
+  const calculateTotalInDuration = (punches) => {
+    let totalInDuration = 0;
+    let lastInTime = null;
+
+    for (let i = 0; i < punches.length; i++) {
+      const punch = punches[i];
+
+      if (punch.isIn) {
+        lastInTime = punch.epochMillis;
+      } else {
+        if (lastInTime !== null) {
+          totalInDuration += punch.epochMillis - lastInTime;
+          lastInTime = null;
+        }
+      }
+    }
+
+    if (lastInTime !== null) {
+      totalInDuration += Date.now() - lastInTime;
+    }
+
+    return totalInDuration;
+  }
+
   const punchClick = async () => {
     try {
       const newIsIn = !isIn;
-      setStartTime(Date.now());
-      setElapsedTime('00:00:00')
+      if (!newIsIn) {
+        setStartTime(Date.now());
+        setElapsedTime('00:00:00')
+      } else {
+        setElapsedTime('')
+        setStartTime(Date.now() - calculateTotalInDuration(punches))
+      }
       setIsIn(newIsIn);
       const response = await axios.post('http://localhost:5001/punch', { isIn: newIsIn, epochMillis: Date.now() });
       setPunches(response.data)
