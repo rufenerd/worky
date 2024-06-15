@@ -88,8 +88,21 @@ const isLunchBreak = () => {
         (now.getHours() === 13 && now.getMinutes() <= 30);
 }
 
+const isNightOrWeekend = () => {
+    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+    const day = now.getDay(); // 0 = Sunday, 6 = Saturday
+    const hour = now.getHours();
+
+    const isWeekend = (day === 0 || day === 6);
+    const isNight = (hour >= 19 || hour < 9);
+
+    return isNight || isWeekend;
+}
 
 const maybeText = () => {
+    if (isNightOrWeekend) {
+        return
+    }
     const timesheetFilePath = getTimesheetFilePath();
     fs.readFile(timesheetFilePath, 'utf8', (err, data) => {
         if (err) {
