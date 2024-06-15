@@ -6,6 +6,24 @@ function App() {
   const [isIn, setIsIn] = useState(false);
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState('');
+  const [punches, setPunches] = useState(null)
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const response = await axios.get('http://localhost:5001/punches');
+        const punches = response.data
+        setPunches(punches)
+
+        const lastPunch = punches[punches.length - 1]
+        setIsIn(lastPunch.isIn)
+        setStartTime(lastPunch.epochMillis)
+      } catch (error) {
+        console.error('Is the backend running and working?', error);
+      }
+    }
+    init()
+  }, [])
 
   useEffect(() => {
     let timer;
@@ -33,7 +51,7 @@ function App() {
       setElapsedTime('00:00:00')
       setIsIn(newIsIn);
       const response = await axios.post('http://localhost:5001/punch', { isIn: newIsIn, epochMillis: Date.now() });
-      console.log(response.data);
+      setPunches(response.data)
     } catch (error) {
       console.error('Error storing data', error);
     }
