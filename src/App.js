@@ -16,7 +16,7 @@ function App() {
           const punches = response.data
           setPunches(punches)
         }
-        setInterval(checkPunches, 500)
+        setInterval(checkPunches, 1000)
       } catch (error) {
         console.error('Is the backend running and working?', error);
       }
@@ -52,7 +52,7 @@ function App() {
         const now = Date.now();
         const diff = now - startTime;
         setElapsedTime(msToTime(diff));
-      }, 100);
+      }, 500);
     } else {
       setElapsedTime('');
     }
