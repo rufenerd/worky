@@ -81,6 +81,14 @@ const calculateTotalInDuration = (punches) => {
     return totalInDuration;
 }
 
+const isLunchBreak = () => {
+    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+    return (now.getHours() === 11 && now.getMinutes() >= 50) ||
+        (now.getHours() === 12) ||
+        (now.getHours() === 13 && now.getMinutes() <= 30);
+}
+
+
 const maybeText = () => {
     const timesheetFilePath = getTimesheetFilePath();
     fs.readFile(timesheetFilePath, 'utf8', (err, data) => {
@@ -118,7 +126,7 @@ const maybeText = () => {
                         sendText("Ok, wrap it up.")
                     }
                 } else {
-                    if (Date.now() - lastPunch.epochMillis > MAX_OUT_DURATION) {
+                    if (!isLunchBreak && Date.now() - lastPunch.epochMillis > MAX_OUT_DURATION) {
                         sendText("Where you at?")
                     }
                 }
