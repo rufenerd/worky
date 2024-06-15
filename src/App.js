@@ -87,6 +87,7 @@ function App() {
       setPunches(response.data)
     } catch (error) {
       console.error('Error storing data', error);
+      throw "Is the server running?"
     }
   };
 
