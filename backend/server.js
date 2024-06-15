@@ -139,7 +139,7 @@ const maybeText = () => {
                         sendText("Ok, wrap it up.")
                     }
                 } else {
-                    if (!isLunchBreak && Date.now() - lastPunch.epochMillis > MAX_OUT_DURATION) {
+                    if (inDuration < MAX_IN_DURATION && !isLunchBreak && Date.now() - lastPunch.epochMillis > MAX_OUT_DURATION) {
                         sendText("Where you at?")
                     }
                 }
