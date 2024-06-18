@@ -14,7 +14,9 @@ function App() {
         const checkPunches = async () => {
           const response = await axios.get('http://192.168.0.34:5001/punches');
           const punches = response.data
-          setPunches(punches)
+          if (punches?.length) {
+            setPunches(punches)
+          }
         }
         setInterval(checkPunches, 1000)
       } catch (error) {
@@ -25,7 +27,7 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (!punches) {
+    if (!punches?.length) {
       return
     }
     const lastPunch = punches[punches.length - 1]
@@ -113,7 +115,7 @@ function App() {
       <div className="clock">
         {elapsedTime}
       </div>
-      {!isIn && inDuration && <div className="inDuration">{msToTime(inDuration)}</div>}
+      {!isIn && !!inDuration && <div className="inDuration">{msToTime(inDuration)}</div>}
     </div>
   );
 }
