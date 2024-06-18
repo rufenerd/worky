@@ -100,7 +100,7 @@ const isNightOrWeekend = () => {
 }
 
 const maybeText = () => {
-    if (isNightOrWeekend) {
+    if (isNightOrWeekend()) {
         return
     }
     const timesheetFilePath = getTimesheetFilePath();
