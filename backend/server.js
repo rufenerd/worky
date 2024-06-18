@@ -133,8 +133,9 @@ const maybeText = () => {
                 }
 
 
+                const inDuration = calculateTotalInDuration(punches)
+
                 if (lastPunch.isIn) {
-                    const inDuration = calculateTotalInDuration(punches)
                     if (inDuration > MAX_IN_DURATION) {
                         sendText("Ok, wrap it up.")
                     }
