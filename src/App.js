@@ -12,7 +12,7 @@ function App() {
     const init = async () => {
       try {
         const checkPunches = async () => {
-          const response = await axios.get('http://192.168.0.34:5001/punches');
+          const response = await axios.get('https://definite-magpie-rufenerd-3bc2f0be.koyeb.app/punches');
           const punches = response.data
           if (punches?.length) {
             setPunches(punches)
@@ -100,7 +100,7 @@ function App() {
         setStartTime(Date.now() - calculateTotalInDuration(punches))
       }
       setIsIn(newIsIn);
-      const response = await axios.post('http://192.168.0.34:5001/punch', { isIn: newIsIn, epochMillis: Date.now() });
+      const response = await axios.post('https://definite-magpie-rufenerd-3bc2f0be.koyeb.app/punch', { isIn: newIsIn, epochMillis: Date.now() });
       setPunches(response.data)
     } catch (error) {
       console.error('Error storing data', error);
