@@ -1,20 +1,20 @@
-# Use the official Node.js image as a base
+# Use the official Node.js image with your desired version as the base image
 FROM node:14
 
-# Set the working directory inside the container
-WORKDIR .
+# Create a directory to hold the application code inside the container
+WORKDIR /app
 
-# Copy package.json and package-lock.json to the working directory
-COPY package*.json ./
+# Copy package.json and package-lock.json (if present) to the working directory
+COPY backend/package*.json ./
 
-# Install dependencies
+# Install npm dependencies
 RUN npm install
 
 # Copy the rest of the application code to the working directory
-COPY . .
+COPY backend/ .
 
-# Expose port 5001
-EXPOSE 5001
+# Expose the port on which your Node.js application will run
+EXPOSE 3000
 
-# Command to run the application
-CMD ["node", "backend/server.js"]
+# Command to run your Node.js application
+CMD ["node", "server.js"]
