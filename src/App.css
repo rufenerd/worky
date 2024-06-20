@@ -5,6 +5,7 @@
   align-items: center;
   height: 100vh;
   cursor: pointer;
+  font-family: Courier;
 }
 .app.in {
   background-color: #E6E18F;
