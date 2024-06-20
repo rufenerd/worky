@@ -31,11 +31,11 @@ function App() {
       return
     }
     const lastPunch = punches[punches.length - 1]
-    setIsIn(lastPunch?.isIn)
-    if (lastPunch?.isIn) {
+    setIsIn(lastPunch?.isin)
+    if (lastPunch?.isin) {
       setStartTime(Date.now() - calculateTotalInDuration(punches))
     } else {
-      setStartTime(lastPunch.epochMillis)
+      setStartTime(lastPunch.epochmillis)
     }
   }, [punches])
 
@@ -72,11 +72,11 @@ function App() {
     for (let i = 0; i < punches.length; i++) {
       const punch = punches[i];
 
-      if (punch.isIn) {
-        lastInTime = punch.epochMillis;
+      if (punch.isin) {
+        lastInTime = punch.epochmillis;
       } else {
         if (lastInTime !== null) {
-          totalInDuration += punch.epochMillis - lastInTime;
+          totalInDuration += punch.epochmillis - lastInTime;
           lastInTime = null;
         }
       }
