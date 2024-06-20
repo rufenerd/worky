@@ -3,10 +3,11 @@ import axios from 'axios';
 import './App.css';
 
 function App() {
-  const [isIn, setIsIn] = useState(false);
+  const [isIn, setIsIn] = useState(null);
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState('');
   const [punches, setPunches] = useState(null)
+  const [outInDuration, setOutInDuration] = useState(null)
 
   useEffect(() => {
     const init = async () => {
@@ -31,11 +32,13 @@ function App() {
       return
     }
     const lastPunch = punches[punches.length - 1]
-    setIsIn(lastPunch?.isIn)
-    if (lastPunch?.isIn) {
-      setStartTime(Date.now() - calculateTotalInDuration(punches))
-    } else {
-      setStartTime(lastPunch.epochMillis)
+    if (isIn == null) {
+      setIsIn(lastPunch?.isIn)
+      if (lastPunch?.isIn) {
+        setStartTime(Date.now() - calculateTotalInDuration(punches))
+      } else {
+        setStartTime(lastPunch.epochMillis)
+      }
     }
   }, [punches])
 
@@ -92,12 +95,14 @@ function App() {
   const punchClick = async () => {
     try {
       const newIsIn = !isIn;
+      const inDuration = calculateTotalInDuration(punches)
       if (!newIsIn) {
         setStartTime(Date.now());
         setElapsedTime('00:00:00')
+        setOutInDuration(inDuration)
       } else {
-        setElapsedTime('')
-        setStartTime(Date.now() - calculateTotalInDuration(punches))
+        setElapsedTime(msToTime(outInDuration || inDuration))
+        setStartTime(Date.now() - inDuration)
       }
       setIsIn(newIsIn);
       const response = await axios.post('https://worky.koyeb.app/punch', { isIn: newIsIn, epochMillis: Date.now() });
@@ -108,14 +113,12 @@ function App() {
     }
   };
 
-  const inDuration = calculateTotalInDuration(punches)
-
   return (
     <div className={`app ${isIn ? 'in' : 'out'}`} onClick={punchClick}>
       <div className="clock">
         {elapsedTime}
       </div>
-      {!isIn && !!inDuration && <div className="inDuration">{msToTime(inDuration)}</div>}
+      {!isIn && !!outInDuration && <div className="inDuration">{msToTime(outInDuration)}</div>}
     </div>
   );
 }
