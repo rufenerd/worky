@@ -30,7 +30,8 @@
 
 .inDuration {
   font-size: 20px;
-  color: #E6E18F
+  color: #E6E18F;
+  min-height: 24px;
 }
 /* 
 #92977E

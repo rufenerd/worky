@@ -121,6 +121,7 @@ function App() {
         {elapsedTime}
       </div>
       {!isIn && !!outInDuration && <div className="inDuration">{msToTime(outInDuration)}</div>}
+      {isIn && <div className="inDuration"></div>}
     </div>
   );
 }
