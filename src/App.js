@@ -34,10 +34,12 @@ function App() {
     const lastPunch = punches[punches.length - 1]
     if (isIn == null) {
       setIsIn(lastPunch?.isIn)
+      const inDuration = calculateTotalInDuration(punches)
       if (lastPunch?.isIn) {
-        setStartTime(Date.now() - calculateTotalInDuration(punches))
+        setStartTime(Date.now() - inDuration)
       } else {
         setStartTime(lastPunch.epochMillis)
+        setOutInDuration(inDuration)
       }
     }
   }, [punches])
