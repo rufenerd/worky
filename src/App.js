@@ -27,7 +27,7 @@ function App() {
                 resetPunch = { isIn, epochMillis: Date.now() - outInDuration }
               }
               console.error("server seems stale, resetting", resetPunch)
-              axios.post('https://worky.koyeb.app/punch', resetPunch);
+              postWithRetry('https://worky.koyeb.app/punch', resetPunch);
             }
           }
         }
@@ -106,6 +106,20 @@ function App() {
     return totalInDuration;
   }
 
+  const postWithRetry = async (url, data, retries = 5, delay = 1000) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        await axios.post(url, data);
+        return;
+      } catch (error) {
+        console.error(`Attempt ${i + 1} failed, retrying in ${delay}ms`, error);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        delay *= 2;  // Exponential backoff
+      }
+    }
+    console.error('All retry attempts failed');
+  };
+
   const punchClick = async () => {
     try {
       const newIsIn = !isIn;
@@ -119,8 +133,9 @@ function App() {
         setStartTime(Date.now() - inDuration)
       }
       setIsIn(newIsIn);
-      const response = await axios.post('https://worky.koyeb.app/punch', { isIn: newIsIn, epochMillis: Date.now() });
-      setPunches(response.data)
+      await postWithRetry('https://worky.koyeb.app/punch', { isIn: newIsIn, epochMillis: Date.now() });
+      const response = await axios.get('https://worky.koyeb.app/punches');
+      setPunches(response.data);
     } catch (error) {
       console.error('Error storing data', error);
       throw "Is the server running?"
