@@ -17,7 +17,6 @@ function App() {
         const checkPunches = async () => {
           const response = await axios.get('https://worky.koyeb.app/punches');
           const newPunches = response.data;
-          console.log(JSON.stringify(latestPunches))
           if (!newPunches?.length) {
             console.log("RESETTING", JSON.stringify(latestPunches))
             if (latestPunches.current?.length) {
