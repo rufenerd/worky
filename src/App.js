@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
+const schedule = require('node-schedule');
 
 function App() {
   const [isIn, setIsIn] = useState(null);
@@ -32,6 +33,19 @@ function App() {
           }
         }
         setInterval(checkPunches, 1000)
+
+        let rule = new schedule.RecurrenceRule();
+        rule.tz = 'America/Los_Angeles';
+        rule.second = 0;
+        rule.minute = 0;
+        rule.hour = 0;
+        schedule.scheduleJob(rule, () => {
+          setPunches([])
+          setIsIn(false)
+          setStartTime(null)
+          setElapsedTime('')
+          setOutInDuration(null)
+        });
       } catch (error) {
         console.error('Is the backend running and working?', error);
       }
