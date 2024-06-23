@@ -14,9 +14,21 @@ function App() {
       try {
         const checkPunches = async () => {
           const response = await axios.get('https://worky.koyeb.app/punches');
-          const punches = response.data
-          if (punches?.length) {
-            setPunches(punches)
+          const newPunches = response.data
+          if (!punches || (newPunches?.length > punches.length)) {
+            setPunches(newPunches)
+          } else {
+            if (punches?.length > newPunches?.length) {
+              let resetPunch
+              if (isIn) {
+                const lastPunch = punches[punches.length - 1]
+                resetPunch = { isIn, epochMillis: lastPunch.epochMillis }
+              } else {
+                resetPunch = { isIn, epochMillis: Date.now() - outInDuration }
+              }
+              console.error("server seems stale, resetting", resetPunch)
+              axios.post('https://worky.koyeb.app/punch', resetPunch);
+            }
           }
         }
         setInterval(checkPunches, 1000)
