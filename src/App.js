@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './App.css';
 const schedule = require('node-schedule');
@@ -7,17 +7,27 @@ function App() {
   const [isIn, setIsIn] = useState(null);
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState('');
-  const [punches, setPunches] = useState(null)
-  const [outInDuration, setOutInDuration] = useState(null)
+  const [punches, setPunches] = useState(null);
+  const latestPunches = useRef(punches)
+  const [outInDuration, setOutInDuration] = useState(null);
 
   useEffect(() => {
     const init = async () => {
       try {
         const checkPunches = async () => {
           const response = await axios.get('https://worky.koyeb.app/punches');
-          const punches = response.data
-          if (punches?.length) {
-            setPunches(punches)
+          const newPunches = response.data;
+          console.log(JSON.stringify(latestPunches))
+          if (!newPunches?.length) {
+            console.log("RESETTING", JSON.stringify(latestPunches))
+            if (latestPunches.current?.length) {
+              latestPunches.current.forEach(async (punch) => {
+                await postWithRetry('https://worky.koyeb.app/punch', punch);
+              });
+            }
+          } else {
+            latestPunches.current = newPunches
+            setPunches(newPunches);
           }
 
           let rule = new schedule.RecurrenceRule();
@@ -26,44 +36,46 @@ function App() {
           rule.minute = 0;
           rule.hour = 0;
           schedule.scheduleJob(rule, () => {
-            setPunches([])
-            setIsIn(false)
-            setStartTime(null)
-            setElapsedTime('')
-            setOutInDuration(null)
+            latestPunches.current = []
+            setPunches([]);
+            setIsIn(false);
+            setStartTime(null);
+            setElapsedTime('');
+            setOutInDuration(null);
           });
-        }
-        setInterval(checkPunches, 1000)
+        };
+
+        setInterval(checkPunches, 2000);
       } catch (error) {
         console.error('Is the backend running and working?', error);
       }
-    }
-    init()
-  }, [])
+    };
+    init();
+  }, []);
 
   useEffect(() => {
     if (!punches?.length) {
-      return
+      return;
     }
-    const lastPunch = punches[punches.length - 1]
+    const lastPunch = punches[punches.length - 1];
     if (isIn == null) {
-      setIsIn(lastPunch?.isIn)
-      const inDuration = calculateTotalInDuration(punches)
+      setIsIn(lastPunch?.isIn);
+      const inDuration = calculateTotalInDuration(punches);
       if (lastPunch?.isIn) {
-        setStartTime(Date.now() - inDuration)
+        setStartTime(Date.now() - inDuration);
       } else {
-        setStartTime(lastPunch.epochMillis)
-        setOutInDuration(inDuration)
+        setStartTime(lastPunch.epochMillis);
+        setOutInDuration(inDuration);
       }
     }
-  }, [punches])
+  }, [punches]);
 
   const msToTime = (ms) => {
     const hours = String(Math.floor(ms / (1000 * 60 * 60))).padStart(2, '0');
     const minutes = String(Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
     const seconds = String(Math.floor((ms % (1000 * 60)) / 1000)).padStart(2, '0');
-    return `${hours}:${minutes}:${seconds}`
-  }
+    return `${hours}:${minutes}:${seconds}`;
+  };
 
   useEffect(() => {
     let timer;
@@ -83,7 +95,7 @@ function App() {
 
   const calculateTotalInDuration = (punches) => {
     if (!punches) {
-      return 0
+      return 0;
     }
     let totalInDuration = 0;
     let lastInTime = null;
@@ -106,7 +118,7 @@ function App() {
     }
 
     return totalInDuration;
-  }
+  };
 
   const postWithRetry = async (url, data, retries = 5, delay = 1000) => {
     for (let i = 0; i < retries; i++) {
@@ -115,8 +127,8 @@ function App() {
         return;
       } catch (error) {
         console.error(`Attempt ${i + 1} failed, retrying in ${delay}ms`, error);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        delay *= 2;  // Exponential backoff
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        delay *= 2; // Exponential backoff
       }
     }
     console.error('All retry attempts failed');
@@ -125,30 +137,33 @@ function App() {
   const punchClick = async () => {
     try {
       const newIsIn = !isIn;
-      const inDuration = calculateTotalInDuration(punches)
+      const inDuration = calculateTotalInDuration(punches);
       if (!newIsIn) {
         setStartTime(Date.now());
-        setElapsedTime('00:00:00')
-        setOutInDuration(inDuration)
+        setElapsedTime('00:00:00');
+        setOutInDuration(inDuration);
       } else {
-        setElapsedTime(msToTime(outInDuration || inDuration))
-        setStartTime(Date.now() - inDuration)
+        setElapsedTime(msToTime(outInDuration || inDuration));
+        setStartTime(Date.now() - inDuration);
       }
       setIsIn(newIsIn);
-      await postWithRetry('https://worky.koyeb.app/punch', { isIn: newIsIn, epochMillis: Date.now() });
+      await postWithRetry('https://worky.koyeb.app/punch', {
+        isIn: newIsIn,
+        epochMillis: Date.now(),
+      });
       const response = await axios.get('https://worky.koyeb.app/punches');
-      setPunches(response.data);
+      const newPunches = response.data
+      setPunches(newPunches);
+      latestPunches.current = newPunches
     } catch (error) {
       console.error('Error storing data', error);
-      throw "Is the server running?"
+      throw 'Is the server running?';
     }
   };
 
   return (
     <div className={`app ${isIn ? 'in' : 'out'}`} onClick={punchClick}>
-      <div className="clock">
-        {elapsedTime}
-      </div>
+      <div className="clock">{elapsedTime}</div>
       {!isIn && !!outInDuration && <div className="inDuration">{msToTime(outInDuration)}</div>}
       {isIn && <div className="inDuration"></div>}
     </div>
