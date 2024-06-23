@@ -15,37 +15,25 @@ function App() {
       try {
         const checkPunches = async () => {
           const response = await axios.get('https://worky.koyeb.app/punches');
-          const newPunches = response.data
-          if (!punches || (newPunches?.length > punches.length)) {
-            setPunches(newPunches)
-          } else {
-            if (punches?.length > newPunches?.length) {
-              let resetPunch
-              if (isIn) {
-                const lastPunch = punches[punches.length - 1]
-                resetPunch = { isIn, epochMillis: lastPunch.epochMillis }
-              } else {
-                resetPunch = { isIn, epochMillis: Date.now() - outInDuration }
-              }
-              console.error("server seems stale, resetting", resetPunch)
-              postWithRetry('https://worky.koyeb.app/punch', resetPunch);
-            }
+          const punches = response.data
+          if (punches?.length) {
+            setPunches(punches)
           }
+
+          let rule = new schedule.RecurrenceRule();
+          rule.tz = 'America/Los_Angeles';
+          rule.second = 0;
+          rule.minute = 0;
+          rule.hour = 0;
+          schedule.scheduleJob(rule, () => {
+            setPunches([])
+            setIsIn(false)
+            setStartTime(null)
+            setElapsedTime('')
+            setOutInDuration(null)
+          });
         }
         setInterval(checkPunches, 1000)
-
-        let rule = new schedule.RecurrenceRule();
-        rule.tz = 'America/Los_Angeles';
-        rule.second = 0;
-        rule.minute = 0;
-        rule.hour = 0;
-        schedule.scheduleJob(rule, () => {
-          setPunches([])
-          setIsIn(false)
-          setStartTime(null)
-          setElapsedTime('')
-          setOutInDuration(null)
-        });
       } catch (error) {
         console.error('Is the backend running and working?', error);
       }
