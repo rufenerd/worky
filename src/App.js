@@ -20,9 +20,11 @@ function App() {
           if (!newPunches?.length) {
             console.log("RESETTING", JSON.stringify(latestPunches))
             if (latestPunches.current?.length) {
-              latestPunches.current.forEach(async (punch) => {
-                await postWithRetry('https://worky.koyeb.app/punch', punch);
-              });
+              const punchPromises = latestPunches.current.map((punch) =>
+                postWithRetry('https://worky.koyeb.app/punch', punch)
+              );
+
+              await Promise.all(punchPromises);
             }
           } else {
             latestPunches.current = newPunches
