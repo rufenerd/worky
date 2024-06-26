@@ -101,7 +101,9 @@ function App() {
       const punch = punches[i];
 
       if (punch.isIn) {
-        lastInTime = punch.epochMillis;
+        if (lastInTime === null) {
+          lastInTime = punch.epochMillis;
+        }
       } else {
         if (lastInTime !== null) {
           totalInDuration += punch.epochMillis - lastInTime;
